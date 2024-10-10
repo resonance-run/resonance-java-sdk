@@ -32,10 +32,6 @@ public class Library<K> {
         this.clientId = clientId;
     }
 
-    public boolean someLibraryMethod() {
-        return true;
-    }
-
     public HashMap<String, Customization> getCustomizations(K userData, String customizationType,
             String surfaceId) {
         Gson gson = new Gson();
