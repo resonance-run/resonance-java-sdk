@@ -17,7 +17,7 @@ import okhttp3.Response;
 import run.resonance.customization.*;
 import run.resonance.customization.network.PostBody;
 
-public class Library<K> {
+public class ResonanceClient<K> {
     private String baseUrl;
     private String apiKey;
     private String clientId;
@@ -26,7 +26,7 @@ public class Library<K> {
 
     public static final MediaType JSON = MediaType.get("application/json");
 
-    public Library(String baseUrl, String apiKey, String clientId) {
+    public ResonanceClient(String baseUrl, String apiKey, String clientId) {
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
         this.clientId = clientId;

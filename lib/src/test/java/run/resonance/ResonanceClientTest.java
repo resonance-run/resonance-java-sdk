@@ -17,7 +17,7 @@ import java.util.HashMap;
 import run.resonance.customization.Customization;
 import run.resonance.mocks.TestUserData;
 
-public class LibraryTest {
+public class ResonanceClientTest {
     @Test
     public void getCustomizationsReturnsCustomization() {
         MockWebServer server = new MockWebServer();
@@ -31,7 +31,7 @@ public class LibraryTest {
             server.start();
             HttpUrl baseUrl = server.url("/");
 
-            Library<TestUserData> classUnderTest = new Library<TestUserData>(baseUrl.toString(),
+            ResonanceClient<TestUserData> classUnderTest = new ResonanceClient<TestUserData>(baseUrl.toString(),
                     "a.fake.api.key", "a-fake-client-id");
             HashMap<String, Customization> result = classUnderTest.getCustomizations(new TestUserData("123"),
                     "feed-promo",
