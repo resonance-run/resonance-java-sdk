@@ -4,18 +4,47 @@
 package run.resonance;
 
 import org.junit.Test;
+
+import okhttp3.HttpUrl;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+
 import static org.junit.Assert.*;
+
+import java.io.IOException;
 import java.util.HashMap;
 
 import run.resonance.customization.Customization;
+import run.resonance.mocks.TestUserData;
 
 public class LibraryTest {
     @Test
     public void getCustomizationsReturnsCustomization() {
-        Library classUnderTest = new Library();
-        HashMap<String, Customization> result = classUnderTest.getCustomizations();
-        Customization modalCustomization = result.get("MODAL");
-        assertEquals("ccc", modalCustomization.id);
-        assertEquals("feed-demo", modalCustomization.customizationTypeId);
+        MockWebServer server = new MockWebServer();
+        MockResponse response = new MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                        "{\"customizations\": { \"MODAL\" : { \"id\": \"customization-id-123\", \"customizationTypeId\": \"feed-promo\" } } }");
+
+        server.enqueue(response);
+        try {
+            server.start();
+            HttpUrl baseUrl = server.url("/");
+
+            Library<TestUserData> classUnderTest = new Library<TestUserData>(baseUrl.toString(),
+                    "a.fake.api.key", "a-fake-client-id");
+            HashMap<String, Customization> result = classUnderTest.getCustomizations(new TestUserData("123"),
+                    "feed-promo",
+                    "MODAL");
+
+            Customization modalCustomization = result.get("MODAL");
+            assertEquals("customization-id-123", modalCustomization.id);
+            assertEquals("feed-promo", modalCustomization.customizationTypeId);
+
+            server.shutdown();
+        } catch (IOException exception) {
+            assertEquals(false, true);
+        }
+
     }
 }
