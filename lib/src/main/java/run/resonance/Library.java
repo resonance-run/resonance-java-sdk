@@ -4,23 +4,55 @@
 package run.resonance;
 
 import java.util.HashMap;
+import java.io.IOException;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import run.resonance.customization.*;
+import run.resonance.customization.network.PostBody;
 
-public class Library {
-    public boolean someLibraryMethod() {
-        return true;
+public class Library<K> {
+    private String baseUrl;
+    private String apiKey;
+    private String clientId;
+
+    final OkHttpClient client = new OkHttpClient();
+
+    public static final MediaType JSON = MediaType.get("application/json");
+
+    public Library(String baseUrl, String apiKey, String clientId) {
+        this.baseUrl = baseUrl;
+        this.apiKey = apiKey;
+        this.clientId = clientId;
     }
 
-    public HashMap<String, Customization> getCustomizations() {
+    public HashMap<String, Customization> getCustomizations(K userData, String customizationType,
+            String surfaceId) {
         Gson gson = new Gson();
-        TypeToken<HashMap<String, Customization>> mapType = new TypeToken<HashMap<String, Customization>>() {
-        };
-        String jsonResponse = "{\"MODAL\": {\"id\": \"ccc\", \"customizationTypeId\": \"feed-demo\"}}";
-        HashMap<String, Customization> customization = gson.fromJson(jsonResponse, mapType);
-        return customization;
+        String jsonResponse = getCustomizationDataFromAmplifierStore(userData, customizationType, surfaceId);
+        APIResponse<K> response = gson.fromJson(jsonResponse, APIResponse.class);
+        return response.customizations;
+    }
+
+    private String getCustomizationDataFromAmplifierStore(K userData, String customizationType, String surfaceId) {
+        Gson gson = new Gson();
+        String json = gson.toJson(new PostBody<K>(userData, apiKey, clientId, customizationType, surfaceId));
+        RequestBody body = RequestBody.create(json, JSON);
+        Request request = new Request.Builder()
+                .url(baseUrl + "/customizations")
+                .post(body)
+                .addHeader("Content-Type", "application/json")
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            return response.body().string();
+        } catch (IOException exception) {
+            return "{}";
+        }
     }
 }
