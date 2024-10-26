@@ -37,7 +37,6 @@ dependencies {
     implementation(libs.guava)
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("org.sonatype.central:central-publishing-maven-plugin:0.6.0")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -48,32 +47,30 @@ java {
     withSourcesJar()
 }
 
-project.afterEvaluate {
-    mavenPublishing {
-        coordinates("run.resonance", "ResonanceClient", "0.0.1")
+mavenPublishing {
+    coordinates("run.resonance", "ResonanceClient", "0.0.1")
 
-        pom {
-            name.set("Resonance Amplifier Java SDK")
-            description.set("Consume Resonance customizations in your Java apps")
-            inceptionYear.set("2024")
-            url.set("https://github.com/resonance-run/resonance-java-sdk")
-            licenses {
-                license {
-                    name.set("MIT")
-                }
-            }
-            developers {
-                developer {
-                    name.set("Steven Foote")
-                    email.set("steven@resonance.run")
-                }
-            }
-            scm {
-                connection.set("scm:git:git://github.com/resonance-run/resonance-java-sdk.git")
-                developerConnection.set("scm:git:ssh://github.com/resonance-run/resonance-java-sdk.git")
-                url.set("https://github.com/resonance-run/resonance-java-sdk")
+    pom {
+        name.set("Resonance Amplifier Java SDK")
+        description.set("Consume Resonance customizations in your Java apps")
+        inceptionYear.set("2024")
+        url.set("https://github.com/resonance-run/resonance-java-sdk")
+        licenses {
+            license {
+                name.set("MIT")
             }
         }
-
+        developers {
+            developer {
+                name.set("Steven Foote")
+                email.set("steven@resonance.run")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/resonance-run/resonance-java-sdk.git")
+            developerConnection.set("scm:git:ssh://github.com/resonance-run/resonance-java-sdk.git")
+            url.set("https://github.com/resonance-run/resonance-java-sdk")
+        }
     }
+
 }
