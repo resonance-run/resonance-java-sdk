@@ -24,7 +24,7 @@ public class ResonanceClientTest {
         MockResponse response = new MockResponse()
                 .addHeader("Content-Type", "application/json")
                 .setBody(
-                        "{\"customizations\": { \"MODAL\" : { \"id\": \"customization-id-123\", \"customizationTypeId\": \"feed-promo\" } } }");
+                        "{\"customizations\": { \"MODAL\" : { \"id\": \"customization-id-123\", \"customizationTypeId\": \"feed-promo\", \"variation\": { \"id\": \"abc\", \"rampPercent\": 50, \"fields\": { \"nest\": { \"fields\": { \"greeting\": {\"value\": \"hi\" } } }, \"hello\": { \"value\": \"friends\" } } } } } }");
 
         server.enqueue(response);
         try {
@@ -33,13 +33,46 @@ public class ResonanceClientTest {
 
             ResonanceClient<TestUserData> classUnderTest = new ResonanceClient<TestUserData>(baseUrl.toString(),
                     "a.fake.api.key", "a-fake-client-id");
-            HashMap<String, Customization> result = classUnderTest.getCustomizations(new TestUserData("123"),
+            HashMap<String, Object> defaultValue = new HashMap<String, Object>();
+            defaultValue.put("hello", "world");
+            HashMap<String, Object> modalCustomization = classUnderTest.getCustomizations(new TestUserData("123"),
                     "feed-promo",
-                    "MODAL");
+                    "MODAL", defaultValue);
 
-            Customization modalCustomization = result.get("MODAL");
-            assertEquals("customization-id-123", modalCustomization.id);
-            assertEquals("feed-promo", modalCustomization.customizationTypeId);
+            assertEquals("friends", modalCustomization.get("hello"));
+            HashMap<String, String> expectedNestValue = new HashMap<String, String>();
+            expectedNestValue.put("greeting", "hi");
+            assertEquals(expectedNestValue, modalCustomization.get("nest"));
+
+            server.shutdown();
+        } catch (IOException exception) {
+            assertEquals(false, true);
+        }
+
+    }
+
+    @Test
+    public void getCustomizationsReturnsDefaultIfNoCustomizationFound() {
+        MockWebServer server = new MockWebServer();
+        MockResponse response = new MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                        "{\"customizations\": {} }");
+
+        server.enqueue(response);
+        try {
+            server.start();
+            HttpUrl baseUrl = server.url("/");
+
+            ResonanceClient<TestUserData> classUnderTest = new ResonanceClient<TestUserData>(baseUrl.toString(),
+                    "a.fake.api.key", "a-fake-client-id");
+            HashMap<String, Object> defaultValue = new HashMap<String, Object>();
+            defaultValue.put("hello", "world");
+            HashMap<String, Object> modalCustomization = classUnderTest.getCustomizations(new TestUserData("123"),
+                    "feed-promo",
+                    "MODAL", defaultValue);
+
+            assertEquals("world", modalCustomization.get("hello"));
 
             server.shutdown();
         } catch (IOException exception) {

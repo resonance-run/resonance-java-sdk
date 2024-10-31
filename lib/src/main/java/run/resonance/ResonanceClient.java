@@ -4,6 +4,7 @@
 package run.resonance;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.io.IOException;
 
 import com.google.gson.Gson;
@@ -32,12 +33,15 @@ public class ResonanceClient<K> {
         this.clientId = clientId;
     }
 
-    public HashMap<String, Customization> getCustomizations(K userData, String customizationType,
-            String surfaceId) {
+    public HashMap<String, Object> getCustomizations(K userData, String customizationType,
+            String surfaceId, HashMap<String, Object> defaultValue) {
         Gson gson = new Gson();
         String jsonResponse = getCustomizationDataFromAmplifierStore(userData, customizationType, surfaceId);
         APIResponse<K> response = gson.fromJson(jsonResponse, APIResponse.class);
-        return response.customizations;
+        if (!response.customizations.containsKey(surfaceId)) {
+            return defaultValue;
+        }
+        return convertCustomizationToVariationHashMap(response.customizations.get(surfaceId));
     }
 
     private String getCustomizationDataFromAmplifierStore(K userData, String customizationType, String surfaceId) {
@@ -52,7 +56,27 @@ public class ResonanceClient<K> {
         try (Response response = client.newCall(request).execute()) {
             return response.body().string();
         } catch (IOException exception) {
-            return "{}";
+            return "{\"userData\": null, \"customizations\": {}}";
         }
+    }
+
+    private HashMap<String, Object> convertCustomizationToVariationHashMap(Customization customization) {
+        HashMap<String, Object> result = convertFieldsToHashMap(customization.variation.fields);
+        return result;
+    }
+
+    private HashMap<String, Object> convertFieldsToHashMap(HashMap<String, Field> fields) {
+        HashMap<String, Object> result = new HashMap<String, Object>();
+        for (Map.Entry<String, Field> entry : fields.entrySet()) {
+            Field value = entry.getValue();
+            if (value.value != null && value.value != "") {
+                result.put(entry.getKey(), value.value);
+            }
+
+            if (value.fields != null) {
+                result.put(entry.getKey(), convertFieldsToHashMap(value.fields));
+            }
+        }
+        return result;
     }
 }
