@@ -4,7 +4,9 @@
 package run.resonance;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -32,12 +34,21 @@ public class ResonanceClient<K> {
         this.clientId = clientId;
     }
 
-    public HashMap<String, Customization> getCustomizations(K userData, String customizationType,
-            String surfaceId) {
+    public <T extends Object> T getCustomizations(K userData, String customizationType,
+            String surfaceId, T defaultValue, Class<T> classOfT) {
         Gson gson = new Gson();
+        Type apiResponseType = TypeToken.getParameterized(APIResponse.class, classOfT).getType();
         String jsonResponse = getCustomizationDataFromAmplifierStore(userData, customizationType, surfaceId);
-        APIResponse<K> response = gson.fromJson(jsonResponse, APIResponse.class);
-        return response.customizations;
+        try {
+            APIResponse<T> response = gson.fromJson(jsonResponse, apiResponseType);
+            if (response.values != null) {
+                return response.values;
+            } else {
+                return defaultValue;
+            }
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 
     private String getCustomizationDataFromAmplifierStore(K userData, String customizationType, String surfaceId) {
@@ -45,14 +56,14 @@ public class ResonanceClient<K> {
         String json = gson.toJson(new PostBody<K>(userData, apiKey, clientId, customizationType, surfaceId));
         RequestBody body = RequestBody.create(json, JSON);
         Request request = new Request.Builder()
-                .url(baseUrl + "/customizations")
+                .url(baseUrl + "/customizations?valuesOnly=true")
                 .post(body)
                 .addHeader("Content-Type", "application/json")
                 .build();
         try (Response response = client.newCall(request).execute()) {
             return response.body().string();
         } catch (IOException exception) {
-            return "{}";
+            return "{\"userData\": null, \"customizations\": {}}";
         }
     }
 }
