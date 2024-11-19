@@ -8,7 +8,7 @@ import com.vanniktech.maven.publish.JavadocJar
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/8.10.2/userguide/building_java_projects.html in the Gradle documentation.
  */
 
-version = "0.0.1"
+version = "0.0.2"
 group = "run.resonance"
 
 plugins {
@@ -41,14 +41,11 @@ dependencies {
 
 // Apply a specific Java toolchain to ease working on different environments.
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
     withSourcesJar()
 }
 
 mavenPublishing {
-    coordinates("run.resonance", "ResonanceClient", "0.0.1")
+    coordinates("run.resonance", "ResonanceClient", "0.0.2")
 
     pom {
         name.set("Resonance Amplifier Java SDK")
